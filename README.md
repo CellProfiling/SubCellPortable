@@ -18,7 +18,7 @@ SubCellPortable provides a streamlined interface for running the [SubCell model]
 
 ```bash
 # Clone repository
-git clone https://github.com/yourusername/SubCellPortable.git
+git clone https://github.com/CellProfiling/SubCellPortable.git
 cd SubCellPortable
 
 # Create virtual environment
@@ -28,6 +28,14 @@ source venv/bin/activate  # On Windows: venv\Scripts\activate
 # Install dependencies
 pip install -r requirements.txt
 ```
+
+### Image format
+
+SubCell uses single channel IF microscopy images as input. It works at single cell level, so it is recommended that:
+- The images show the complete single cell of interest centered
+- If the images come from a FOV (in which more cells might be present) and you have the cell segmentation mask, mask the cell with it. This is not mandatory but advised.
+- If you are running inference and want to be as close as possible with the model training data, please use 640x640 images (or more if this size does not cover many of your cells) with a 0.0800885 pixel/micron resolution
+
 
 ### Basic Usage
 
