@@ -16,6 +16,9 @@ class SubCellConfig:
     3. Command-line arguments (highest priority)
     """
 
+    # Input CSV file
+    path_list: Optional[str] = None
+
     # Model configuration
     model_channels: Literal["rybg", "rbg", "ybg", "bg"] = "rybg"
     model_type: Literal["mae_contrast_supcon_model", "vit_supcon_model"] = "mae_contrast_supcon_model"

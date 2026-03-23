@@ -187,6 +187,10 @@ def run_inference() -> None:
     # Setup - load config and get file paths
     config, config_file, path_list = load_config()
 
+    # Override path_list location if specified in config
+    if config.path_list:
+        path_list = config.path_list
+
     # Setup logging with output_dir if specified
     if config.output_dir:
         log_path = os.path.join(config.output_dir, "log.txt")

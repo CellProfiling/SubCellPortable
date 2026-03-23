@@ -1,17 +1,19 @@
+path_list: "input/path_list.csv"
+
 model_channels: "rybg"
 model_type: "mae_contrast_supcon_model"
 update_model: False
 
 # Output configuration
 output_dir: "./output"  # Directory for all output files (required for new CSV format)
-create_csv: False
+create_csv: True
 save_attention_maps: False
-output_format: "combined"  # "individual" (.npy files) or "combined" (.h5ad file)
-embeddings_only: True
+output_format: "individual"  # "individual" (.npy files) or "combined" (.h5ad file)
+embeddings_only: False
 
 # Performance configuration
 gpu: 0
-batch_size: 128
-num_workers: 15
+batch_size: 1
+num_workers: 1
 prefetch_factor: 3
 async_saving: False

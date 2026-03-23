@@ -58,6 +58,7 @@ images/cell_2_mt.png,,images/cell_2_nuc.png,images/cell_2_prot.png,cell2_
 2. **Configure settings** (`config.yaml`):
 
 ```yaml
+path_list: "path_list.csv"  # The location of the input CSV file
 model_channels: "rybg"      # Channel configuration
 output_dir: "./results"     # Output directory
 batch_size: 128             # Batch size (adjust for GPU memory)
