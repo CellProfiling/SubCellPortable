@@ -34,7 +34,7 @@ pip install -r requirements.txt
 SubCell uses single channel IF microscopy images as input. It works at single cell level, so it is recommended that:
 - The images show the complete single cell of interest centered
 - If the images come from a FOV (in which more cells might be present) and you have the cell segmentation mask, mask the cell with it. This is not mandatory but advised.
-- If you are running inference and want to be as close as possible with the best model performance during inference, please use 640x640 images (or more if this size does not cover many of your cells) with a 0.0800885 pixel/micron resolution
+- If you are running inference and want to be as close as possible with the best model performance during inference, please use 640x640 images (or more if this size does not cover many of your cells) with a 0.0800885 micron/pixel resolution
 
 
 ### Basic Usage
