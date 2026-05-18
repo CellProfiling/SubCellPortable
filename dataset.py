@@ -16,11 +16,12 @@ def min_max_norm_fn(x: np.ndarray) -> np.ndarray:
 class SubCellDataset(Dataset):
     """PyTorch Dataset for SubCell image processing"""
 
-    def __init__(self, path_list_file, model_channels="rybg"):
+    def __init__(self, path_list_file=None, model_channels="rybg", data_list=None):
         """
         Args:
             path_list_file (str): Path to the CSV file containing image paths
             model_channels (str): Channel configuration (rybg, rbg, ybg, bg)
+            data_list (list): Optional pre-planned rows for automatic inference
         """
         self.model_channels = model_channels
         self.data_list = []
@@ -34,16 +35,17 @@ class SubCellDataset(Dataset):
             "g": "g_image",
         }
 
-        # Read CSV
-        df = pd.read_csv(path_list_file)
-
-        # Remove the '#' from column names if present
-        df.columns = df.columns.str.lstrip("#")
-
-        # Detect CSV format (old vs new)
-        self.uses_old_format = "output_folder" in df.columns
-
-        self.data_list = df.to_dict("records")
+        if data_list is not None:
+            self.data_list = data_list
+            self.uses_old_format = any(
+                item.get("output_folder") is not None for item in self.data_list
+            )
+        else:
+            # Read CSV
+            df = pd.read_csv(path_list_file)
+            df.columns = df.columns.str.lstrip("#")
+            self.uses_old_format = "output_folder" in df.columns
+            self.data_list = df.to_dict("records")
 
     def __len__(self) -> int:
         """Return the number of samples in the dataset."""
@@ -52,15 +54,21 @@ class SubCellDataset(Dataset):
     def __getitem__(self, idx: int) -> Dict[str, Any]:
         """Load and preprocess a single image set"""
         item = self.data_list[idx]
+        model_channels = item.get("model_channels", self.model_channels)
+        channel_paths = item.get("channel_paths")
 
         # Load images based on model channels configuration
         cell_data = []
 
         # Only process channels specified in model_channels
-        for channel_name in self.model_channels:
-            channel_key = self.channel_mapping[channel_name]
-            # load the channel image
-            img = image_utils.read_grayscale_image(item[channel_key])
+        for channel_name in model_channels:
+            if channel_paths is not None:
+                img_path = channel_paths[channel_name]
+            else:
+                channel_key = self.channel_mapping[channel_name]
+                img_path = item[channel_key]
+
+            img = image_utils.read_grayscale_image(img_path)
             cell_data.append(img)
 
         # Stack images along channel dimension
@@ -73,12 +81,15 @@ class SubCellDataset(Dataset):
         result = {
             "images": cell_data.astype(np.float32),
             "output_prefix": item["output_prefix"],
-            "original_item": item,
+            "original_item": item.get("original_item", item),
         }
 
         # Include output_folder only if using old format
         if self.uses_old_format:
             result["output_folder"] = item["output_folder"]
+
+        if "pass_spec" in item:
+            result["pass_spec"] = item["pass_spec"]
 
         return result
 
@@ -105,5 +116,8 @@ def collate_fn(batch: List[Dict[str, Any]]) -> Dict[str, Any]:
     # Include output_folders only if present (old format)
     if "output_folder" in batch[0]:
         result["output_folders"] = [item["output_folder"] for item in batch]
+
+    if "pass_spec" in batch[0]:
+        result["pass_specs"] = [item["pass_spec"] for item in batch]
 
     return result

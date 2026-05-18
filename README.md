@@ -53,13 +53,19 @@ images/cell_2_mt.png,,images/cell_2_nuc.png,images/cell_2_prot.png,cell2_
 - `b` = nuclei (blue/DAPI)
 - `g` = protein of interest (green)
 
-*Leave channels empty if not available (e.g., use `rbg` for 3-channel images)*
+*Leave channels empty if not available (e.g., use `rbg` for 3-channel images).*
+
+Set `model_channels` to `auto` to choose the best supported model for each row. Extra `*_image` columns are treated as additional g-like passes and their embeddings are concatenated.
+
+![Automatic model-selection decision tree](images/model_selection_decision_tree.svg)
+
+![Multi-pass expansion and embedding concatenation](images/multipass_embedding_flow.svg)
 
 2. **Configure settings** (`config.yaml`):
 
 ```yaml
 path_list: "path_list.csv"  # The location of the input CSV file
-model_channels: "rybg"      # Channel configuration
+model_channels: "rybg"      # Channel configuration (or "auto" for per-row selection)
 output_dir: "./results"     # Output directory
 batch_size: 128             # Batch size (adjust for GPU memory)
 gpu: 0                      # GPU device ID (-1 for CPU)
@@ -106,6 +112,11 @@ path/to/image2_mt.png,,path/to/image2_nuc.png,path/to/image2_prot.png,batch_A/sa
 
 - Skip rows by prefixing with `#`
 - Create subfolders in the output folder by them to output_prefix like: /subfolder_1/sample_1
+- In `auto` mode, the pipeline chooses the largest supported model that matches the available row-level channels.
+- Extra `*_image` columns after `g_image` are treated as sequential g-like passes. Multi-pass rows concatenate embeddings and skip classification probabilities.
+
+The selection logic is visualized in ![assets/model_selection_decision_tree.png](assets/model_selection_decision_tree.png).
+The multi-pass expansion and aggregation flow In JUMP dataset is visualized in ![assets/multipass_embedding_flow.png](assets/multipass_embedding_flow.png).
 
 **Legacy Format** (deprecated but supported):
 ```csv
@@ -124,7 +135,7 @@ r_image,y_image,b_image,g_image,output_folder,output_prefix
 | `--config` | Path to configuration YAML file | `config.yaml` | `experiment.yaml` |
 | `--path_list` | Path to input CSV file | `path_list.csv` | `data.csv` |
 | `--output_dir` `-o` | Output directory for all results | - | `./results` |
-| `--model_channels` `-c` | Channel configuration | `rybg` | `rbg`, `ybg`, `bg` |
+| `--model_channels` `-c` | Channel configuration | `rybg` | `auto`, `rbg`, `ybg`, `bg`, `rybg` |
 | `--model_type` `-m` | Model architecture | `mae_contrast_supcon_model` | `vit_supcon_model` |
 | `--output_format` | Output format | `combined` | `individual` |
 | `--num_workers` `-w` | Data loading workers | `4` | `8` |
@@ -158,7 +169,7 @@ import anndata as ad
 adata = ad.read_h5ad("results/embeddings.h5ad")
 
 # Access data
-embeddings = adata.X                    # (n_samples, 1536)
+embeddings = adata.X                    # (n_samples, 1536 * pass_count in auto multi-pass mode)
 probabilities = adata.obsm['probabilities']  # (n_samples, 31)
 sample_ids = adata.obs_names            # Image identifiers
 ```
@@ -168,8 +179,8 @@ sample_ids = adata.obs_names            # Image identifiers
 ### Individual Format
 
 **Files per image**:
-- `{output_prefix}_embedding.npy` - 1536D embedding vector
-- `{output_prefix}_probabilities.npy` - 31-class probability distribution
+- `{output_prefix}_embedding.npy` - embedding vector (`1536` dimensions per inference pass)
+- `{output_prefix}_probabilities.npy` - 31-class probability distribution when classification is available
 - `{output_prefix}_attention_map.png` - Attention visualization (optional)
 
 ```python
@@ -191,7 +202,7 @@ probs = np.load("results/cell1_probabilities.npy")      # Shape: (31,)
 | `top_3_classes_names` | Top 3 predictions (comma-separated) |
 | `top_3_classes` | Top 3 indices |
 | `prob00` - `prob30` | Full probability distribution |
-| `feat0000` - `feat1535` | Full embedding vector |
+| `feat0000` - `featNNNN` | Full embedding vector, sized dynamically for single-pass or multi-pass inference |
 
 ---
 

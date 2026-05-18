@@ -31,7 +31,7 @@ Common mistakes:
 
 For more help: python process.py --help
 Configuration file: Edit config.yaml for easier parameter management
-"""
+""",
     )
 
     # Input/config files
@@ -52,8 +52,8 @@ Configuration file: Edit config.yaml for easier parameter management
     parser.add_argument(
         "-c",
         "--model_channels",
-        help="Channel images to be used",
-        choices=["rybg", "rbg", "ybg", "bg"],
+        help="Model channel configuration to use. 'auto' selects the best available model per row.",
+        choices=["auto", "rybg", "rbg", "ybg", "bg"],
         default=argparse.SUPPRESS,
         type=str,
     )

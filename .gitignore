@@ -112,4 +112,7 @@ cython_debug/
 /subcell_features
 log.txt
 
+*.pth
+
 .DS_Store*
+subcell_features.zip
