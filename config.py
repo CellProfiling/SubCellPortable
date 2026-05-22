@@ -1,5 +1,6 @@
 """Configuration management for SubCellPortable."""
 
+import warnings
 from dataclasses import dataclass, field
 from typing import Optional, Literal
 import logging
@@ -39,8 +40,8 @@ class SubCellConfig:
 
     # Performance configuration
     gpu: int = -1  # -1 for CPU, 0+ for GPU ID
-    batch_size: int = 128
-    num_workers: int = 4
+    batch_size: int = 1
+    num_workers: int = 0
     prefetch_factor: int = 2
     async_saving: bool = False
 
@@ -87,6 +88,31 @@ class SubCellConfig:
         if self.model_type not in valid_models:
             raise ValueError(
                 f"model_type must be one of {valid_models}, got {self.model_type}"
+            )
+
+        # Warn about parameter combinations that are valid but will be silently ignored
+        if self.num_workers == 0 and self.prefetch_factor != 2:
+            warnings.warn(
+                f"prefetch_factor={self.prefetch_factor} has no effect when num_workers=0 "
+                "(DataLoader runs in the main process). Set num_workers >= 1 to enable prefetching.",
+                UserWarning,
+                stacklevel=3,
+            )
+
+        if self.async_saving and self.output_format == "combined":
+            warnings.warn(
+                "async_saving=True has no effect when output_format='combined'. "
+                "Async saving only applies to the 'individual' (.npy) output format.",
+                UserWarning,
+                stacklevel=3,
+            )
+
+        if self.async_saving and self.model_channels == "auto":
+            warnings.warn(
+                "async_saving=True is ignored when model_channels='auto'. "
+                "Automatic multi-pass inference always uses synchronous saving.",
+                UserWarning,
+                stacklevel=3,
             )
 
     @classmethod

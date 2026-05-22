@@ -67,8 +67,9 @@ Set `model_channels` to `auto` to choose the best supported model for each row. 
 path_list: "path_list.csv"  # The location of the input CSV file
 model_channels: "rybg"      # Channel configuration (or "auto" for per-row selection)
 output_dir: "./results"     # Output directory
-batch_size: 128             # Batch size (adjust for GPU memory)
-gpu: 0                      # GPU device ID (-1 for CPU)
+batch_size: 1               # Images per forward pass (increase to 32–256 when using a GPU)
+gpu: -1                     # GPU device ID (-1 for CPU)
+num_workers: 0              # DataLoader workers (0 = single-threaded, safe on any laptop)
 output_format: "combined"   # "combined" (h5ad) or "individual" (npy)
 ```
 
@@ -138,9 +139,9 @@ r_image,y_image,b_image,g_image,output_folder,output_prefix
 | `--model_channels` `-c` | Channel configuration | `rybg` | `auto`, `rbg`, `ybg`, `bg`, `rybg` |
 | `--model_type` `-m` | Model architecture | `mae_contrast_supcon_model` | `vit_supcon_model` |
 | `--output_format` | Output format | `combined` | `individual` |
-| `--num_workers` `-w` | Data loading workers | `4` | `8` |
+| `--num_workers` `-w` | Data loading workers | `0` | `4` |
 | `--gpu` `-g` | GPU device ID (-1 = CPU) | `-1` | `0` |
-| `--batch_size` `-b` | Batch size | `128` | `256` |
+| `--batch_size` `-b` | Batch size | `1` | `256` |
 | `--embeddings_only` | Skip classification | `False` | - |
 
 ### Advanced Parameters
@@ -148,10 +149,10 @@ r_image,y_image,b_image,g_image,output_folder,output_prefix
 | Parameter | Description | Default |
 |-----------|-------------|---------|
 | `--update_model` `-u` | Download/update models | `False` |
-| `--prefetch_factor` `-p` | Prefetch batches | `2` |
+| `--prefetch_factor` `-p` | Prefetch batches per worker (requires `num_workers > 0`) | `2` |
 | `--create_csv` | Generate combined CSV | `False` |
 | `--save_attention_maps` | Save attention visualizations | `False` |
-| `--async_saving` | Async file saving (individual only) | `False` |
+| `--async_saving` | Async file saving (`individual` format only) | `False` |
 | `--quiet` `-q` | Suppress verbose logging | `False` |
 
 ---

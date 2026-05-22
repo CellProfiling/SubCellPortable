@@ -12,8 +12,11 @@ output_format: "individual"  # "individual" (.npy files) or "combined" (.h5ad fi
 embeddings_only: False
 
 # Performance configuration
-gpu: 0
-batch_size: 1
-num_workers: 1
-prefetch_factor: 3
-async_saving: False
+# Defaults are conservative so the tool runs on any laptop out of the box.
+# For faster throughput on a workstation or GPU machine, see the tuning hints below.
+gpu: -1           # -1 = CPU (works everywhere). Set to 0, 1, … to use a specific GPU.
+batch_size: 1     # Images processed per forward pass. Increase (e.g. 32–256) when a GPU is available.
+num_workers: 0    # DataLoader worker processes. 0 = single-threaded main process (safe on all OS).
+                  # Increase (e.g. 4–8) together with prefetch_factor for GPU throughput.
+prefetch_factor: 2  # Batches pre-loaded per worker. Only active when num_workers > 0.
+async_saving: False  # Async file I/O — only effective with output_format: "individual".
