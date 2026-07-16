@@ -180,8 +180,7 @@ def run_model(
     # Only compute probabilities if not in embeddings_only mode
     probabilities_batch = None
     if not embeddings_only:
-        # Apply softmax to normalize probabilities (so they sum to 1.0)
-        probabilities_batch = F.softmax(output.probabilities, dim=-1).cpu().numpy()
+        probabilities_batch = output.probabilities.cpu().numpy()
 
     # Extract attention maps if needed (before freeing GPU memory)
     attention_maps = None
